@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "209418664792",
+    "project_id": "todolist-vinicius2405",
+    "storage_bucket": "todolist-vinicius2405.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:209418664792:android:e1c6e6225233c337c1032d",
+        "android_client_info": {
+          "package_name": "com.example.to_do_list"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-bhOWt-p1GVzD2nRinA1iiBHYOt7RIlA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
