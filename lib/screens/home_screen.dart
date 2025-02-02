@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:to_do_list/screens/edit_task_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -140,6 +141,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             _toggleTaskCompletion(taskId, isCompleted);
                           },
                         ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditTaskScreen(
+                                  taskId: taskId,
+                                  currentTaskText: taskText,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.edit),
+                           ),
                         IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {
