@@ -3,7 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/register_screen.dart'; 
+import 'screens/register_screen.dart';
+import 'utils/routes.dart'; 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized(); 
     await Firebase.initializeApp( 
@@ -19,11 +20,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/login',
       routes: {
-        '/login': (context) => LoginScreen(),
-        '/register': (context) => RegisterScreen(),
-        '/home': (context) => HomeScreen(),
+        AppRoutes.LOGIN : (context) => LoginScreen(),
+        AppRoutes.REGISTER : (context) => RegisterScreen(),
+        AppRoutes.HOME : (context) => HomeScreen(),
       },
       debugShowCheckedModeBanner: false,
     );
   }
 }
+
