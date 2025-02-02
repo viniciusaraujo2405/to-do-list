@@ -1,63 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:to_do_list/screens/edit_task_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:to_do_list/services/AuthProvider.dart';
+import 'package:to_do_list/services/TaskProvider.dart';
+import 'edit_task_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-
+class HomeScreen extends StatelessWidget {
   final _taskController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-
-   Future<void> _addTask() async {
-    if (_taskController.text.isNotEmpty) {
-      try {
-        await _firestore.collection('tasks').add({
-          'userId': _auth.currentUser!.uid,
-          'task': _taskController.text,
-          'completed': false,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-        _taskController.clear();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao adicionar tarefa: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _toggleTaskCompletion(String taskId, bool completed) async {
-    try {
-      await _firestore.collection('tasks').doc(taskId).update({
-        'completed': !completed,
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao atualizar tarefa: $e')),
-      );
-    }
-  }
-
-  Future<void> _deleteTask(String taskId) async {
-    try {
-      await _firestore.collection('tasks').doc(taskId).delete();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao deletar tarefa: $e')),
-      );
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
+    final taskProvider = Provider.of<TaskProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Lista de Tarefas'),
@@ -67,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              await _auth.signOut();
+              await Provider.of<MyAuthProvider>(context, listen: false).signOut();
               Navigator.pushReplacementNamed(context, '/login');
             },
           ),
@@ -87,87 +41,80 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   icon: Icon(Icons.add),
-                  onPressed: _addTask,
+                  onPressed: () async {
+                    if (_taskController.text.isNotEmpty) {
+                      await taskProvider.addTask(_taskController.text);
+                      _taskController.clear();
+                    }
+                  },
                 ),
               ],
             ),
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-            stream: _firestore
-                .collection('tasks')
-                .where('userId', isEqualTo: _auth.currentUser!.uid)
-                .orderBy('timestamp', descending: true)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
+              stream: taskProvider.tasksStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
 
-              if (snapshot.hasError) {
-                return Center(child: Text('Erro ao carregar tarefas: ${snapshot.error}'));
-              }
+                final tasks = snapshot.data!.docs;
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(child: Text('Nenhuma tarefa encontrada.'));
-              }
+                return ListView.builder(
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+                    final taskId = task.id;
+                    final taskData = task.data() as Map<String, dynamic>;
+                    final taskText = taskData['task'];
+                    final isCompleted = taskData['completed'];
 
-              final tasks = snapshot.data!.docs;
-
-              return ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  final taskId = task.id;
-                  final taskData = task.data() as Map<String, dynamic>;
-                  final taskText = taskData['task'];
-                  final isCompleted = taskData['completed'];
-
-                  return ListTile(
-                    title: Text(
-                      taskText,
-                      style: TextStyle(
-                        decoration: isCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
+                    return ListTile(
+                      title: Text(
+                        taskText,
+                        style: TextStyle(
+                          decoration: isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
                       ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Checkbox(
-                          value: isCompleted,
-                          onChanged: (value) {
-                            _toggleTaskCompletion(taskId, isCompleted);
-                          },
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditTaskScreen(
-                                  taskId: taskId,
-                                  currentTaskText: taskText,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                            value: isCompleted,
+                            onChanged: (value) {
+                              taskProvider.toggleTaskCompletion(taskId, isCompleted);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditTaskScreen(
+                                    taskId: taskId,
+                                    currentTaskText: taskText,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          icon: Icon(Icons.edit),
-                           ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _deleteTask(taskId);
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              taskProvider.deleteTask(taskId);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

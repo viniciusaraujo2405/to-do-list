@@ -17,21 +17,19 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   @override
   void initState() {
     super.initState();
-    _taskController.text = widget.currentTaskText; // Preenche o campo com o texto atual.
+    _taskController.text = widget.currentTaskText; 
   }
 
   Future<void> _updateTask() async {
     if (_taskController.text.isNotEmpty) {
       try {
-        // Atualiza a tarefa no Firestore.
         await FirebaseFirestore.instance
             .collection('tasks')
             .doc(widget.taskId)
             .update({
-          'task': _taskController.text, // Atualiza o texto da tarefa.
+          'task': _taskController.text, 
         });
 
-        // Volta para a tela anterior após a atualização.
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
