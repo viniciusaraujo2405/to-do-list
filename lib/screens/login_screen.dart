@@ -47,6 +47,7 @@ class LoginScreen extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Erro ao fazer login: ${e.message}')),
                       );
+                      
                     }
                   },
                   child: Text('Login'),

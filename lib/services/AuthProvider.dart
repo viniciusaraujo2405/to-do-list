@@ -9,9 +9,9 @@ class MyAuthProvider with ChangeNotifier {
   Future<void> signInWithEmailAndPassword(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      notifyListeners(); // Notifica os ouvintes sobre a mudança de estado.
+      notifyListeners(); 
     } on FirebaseAuthException catch (e) {
-      throw e; // Lança a exceção para ser tratada na UI.
+      throw e; 
     }
   }
 
@@ -22,7 +22,7 @@ class MyAuthProvider with ChangeNotifier {
         password: password,
       );
 
-      // Armazena o nome de usuário no Firestore.
+      
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
@@ -31,14 +31,14 @@ class MyAuthProvider with ChangeNotifier {
         'email': email,
       });
 
-      notifyListeners(); // Notifica os ouvintes sobre a mudança de estado.
+      notifyListeners(); 
     } on FirebaseAuthException catch (e) {
-      throw e; // Lança a exceção para ser tratada na UI.
+      throw e; 
     }
   }
 
   Future<void> signOut() async {
     await _auth.signOut();
-    notifyListeners(); // Notifica os ouvintes sobre a mudança de estado.
+    notifyListeners(); 
   }
 }
