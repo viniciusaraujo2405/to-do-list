@@ -93,58 +93,66 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('tasks')
-                  .where('userId', isEqualTo: _auth.currentUser!.uid)
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
+            stream: _firestore
+                .collection('tasks')
+                .where('userId', isEqualTo: _auth.currentUser!.uid)
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-                final tasks = snapshot.data!.docs;
+              if (snapshot.hasError) {
+                return Center(child: Text('Erro ao carregar tarefas: ${snapshot.error}'));
+              }
 
-                return ListView.builder(
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) {
-                    final task = tasks[index];
-                    final taskId = task.id;
-                    final taskData = task.data() as Map<String, dynamic>;
-                    final taskText = taskData['task'];
-                    final isCompleted = taskData['completed'];
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(child: Text('Nenhuma tarefa encontrada.'));
+              }
 
-                    return ListTile(
-                      title: Text(
-                        taskText,
-                        style: TextStyle(
-                          decoration: isCompleted
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
+              final tasks = snapshot.data!.docs;
+
+              return ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  final taskId = task.id;
+                  final taskData = task.data() as Map<String, dynamic>;
+                  final taskText = taskData['task'];
+                  final isCompleted = taskData['completed'];
+
+                  return ListTile(
+                    title: Text(
+                      taskText,
+                      style: TextStyle(
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                          value: isCompleted,
+                          onChanged: (value) {
+                            _toggleTaskCompletion(taskId, isCompleted);
+                          },
                         ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            value: isCompleted,
-                            onChanged: (value) {
-                              _toggleTaskCompletion(taskId, isCompleted);
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              _deleteTask(taskId);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _deleteTask(taskId);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
           ),
         ],
       ),
