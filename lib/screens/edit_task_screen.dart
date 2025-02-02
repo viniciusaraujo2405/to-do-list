@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+
+import '../services/TaskProvider.dart';
 
 class EditTaskScreen extends StatefulWidget {
   final String taskId;
@@ -20,27 +22,10 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     _taskController.text = widget.currentTaskText; 
   }
 
-  Future<void> _updateTask() async {
-    if (_taskController.text.isNotEmpty) {
-      try {
-        await FirebaseFirestore.instance
-            .collection('tasks')
-            .doc(widget.taskId)
-            .update({
-          'task': _taskController.text, 
-        });
-
-        Navigator.pop(context);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar tarefa: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final taskProvider = Provider.of<TaskProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Editar Tarefa'),
@@ -57,7 +42,21 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _updateTask,
+              onPressed: () async {
+                if (_taskController.text.isNotEmpty) {
+                  try {
+                    await taskProvider.updateTask(
+                      widget.taskId,
+                      _taskController.text,
+                    );
+                    Navigator.pop(context); 
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erro ao atualizar tarefa: $e')),
+                    );
+                  }
+                }
+              },
               child: Text('Salvar'),
             ),
           ],
