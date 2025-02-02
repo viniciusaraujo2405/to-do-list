@@ -1,17 +1,27 @@
-import 'package:flutter/material.dart'; 
-import 'package:firebase_core/firebase_core.dart'; 
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
-import 'utils/routes.dart'; 
-void main() async { 
-  WidgetsFlutterBinding.ensureInitialized(); 
-    await Firebase.initializeApp( 
-        options: DefaultFirebaseOptions.currentPlatform, 
-        ); 
-    runApp(MyApp()); 
+import 'screens/home_screen.dart';
+import 'services/AuthProvider.dart';
+import 'services/TaskProvider.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -20,12 +30,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/login',
       routes: {
-        AppRoutes.LOGIN : (context) => LoginScreen(),
-        AppRoutes.REGISTER : (context) => RegisterScreen(),
-        AppRoutes.HOME : (context) => HomeScreen(),
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/home': (context) => HomeScreen(),
       },
       debugShowCheckedModeBanner: false,
     );
   }
 }
-
