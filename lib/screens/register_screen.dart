@@ -1,37 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class LoginScreen extends StatefulWidget {
+class RegisterScreen extends StatefulWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       try {
-        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
-        
+        // Navegar para a tela principal após o registro
         Navigator.pushReplacementNamed(context, '/home');
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao fazer login: ${e.message}')),
+          SnackBar(content: Text('Erro ao registrar: ${e.message}')),
         );
       }
     }
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: Text('Registro')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -61,14 +61,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _login,
-                child: Text('Login'),
+                onPressed: _register,
+                child: Text('Registrar'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/register');
+                  Navigator.pop(context);
                 },
-                child: Text('Criar uma conta'),
+                child: Text('Voltar para o Login'),
               ),
             ],
           ),
